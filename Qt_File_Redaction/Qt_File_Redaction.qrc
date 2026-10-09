@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+    	<file>docs/manual.html</file>
+	<file>resources/appicon.ico</file>
+    </qresource>
+</RCC>
