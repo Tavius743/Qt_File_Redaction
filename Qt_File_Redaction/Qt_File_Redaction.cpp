@@ -207,12 +207,48 @@ void Qt_File_Redaction::on_btnStarted_clicked()
         m_engine.addCustomRule(name, target, templ, useSm3);
     }
 
-    // ---- 启用固定规则 ----
-    m_engine.setRuleEnabled("id_card", ui.cbIDCard->isChecked());
-    m_engine.setRuleEnabled("phone", ui.cbPhone->isChecked());
-    m_engine.setRuleEnabled("car_plate", ui.cbCarPlate->isChecked());
-    m_engine.setRuleEnabled("email", ui.cbEmail->isChecked());
+    // 先关闭所有地区专属规则
+    m_engine.setRuleEnabled("id_card_cn", false);
+    m_engine.setRuleEnabled("phone_cn", false);
+    m_engine.setRuleEnabled("plate_cn", false);
+    m_engine.setRuleEnabled("id_card_hk", false);
+    m_engine.setRuleEnabled("phone_hk", false);
+    m_engine.setRuleEnabled("plate_hk", false);
+    m_engine.setRuleEnabled("id_card_mo", false);
+    m_engine.setRuleEnabled("phone_mo", false);
+    m_engine.setRuleEnabled("plate_mo", false);
+    m_engine.setRuleEnabled("id_card_tw", false);
+    m_engine.setRuleEnabled("phone_tw", false);
+    m_engine.setRuleEnabled("plate_tw", false);
+
+    // 读取下拉框
+    QString region = ui.cbRegion->currentText();
+
+    // 根据地区精准映射四类数据
+    if (region == "中国内地") {
+        m_engine.setRuleEnabled("id_card_cn", ui.cbIDCard->isChecked());
+        m_engine.setRuleEnabled("phone_cn", ui.cbPhone->isChecked());
+        m_engine.setRuleEnabled("plate_cn", ui.cbCarPlate->isChecked());
+    }
+    else if (region == "中国香港") {
+        m_engine.setRuleEnabled("id_card_hk", ui.cbIDCard->isChecked());
+        m_engine.setRuleEnabled("phone_hk", ui.cbPhone->isChecked());
+        m_engine.setRuleEnabled("plate_hk", ui.cbCarPlate->isChecked());
+    }
+    else if (region == "中国澳门") {
+        m_engine.setRuleEnabled("id_card_mo", ui.cbIDCard->isChecked());
+        m_engine.setRuleEnabled("phone_mo", ui.cbPhone->isChecked());
+        m_engine.setRuleEnabled("plate_mo", ui.cbCarPlate->isChecked());
+    }
+    else if (region == "中国台湾") {
+        m_engine.setRuleEnabled("id_card_tw", ui.cbIDCard->isChecked());
+        m_engine.setRuleEnabled("phone_tw", ui.cbPhone->isChecked());
+        m_engine.setRuleEnabled("plate_tw", ui.cbCarPlate->isChecked());
+    }
+
+    // 通用规则不受地区影响
     m_engine.setRuleEnabled("bank_card", ui.cbBankCard->isChecked());
+    m_engine.setRuleEnabled("email", ui.cbEmail->isChecked());
 
     // ---- 切换到进度页（主线程） ----
     goToPage(2);
@@ -312,12 +348,29 @@ void Qt_File_Redaction::on_btnStarted_clicked()
                 ui.textEditReport->append("--------------------------------------");
                 int totalHits = 0;
                 // 内置规则英文名 → 中文显示
+                // 内置规则英文名 → 中文显示（包含港澳台）
                 std::map<std::string, QString> nameMap = {
-                    {"phone",     QStringLiteral("手机号")},
-                    {"id_card",   QStringLiteral("身份证号")},
-                    {"email",     QStringLiteral("邮箱号")},
-                    {"bank_card", QStringLiteral("银行卡号")},
-                    {"car_plate", QStringLiteral("车牌号")},
+                    // 大陆
+                    {"phone_cn",     QStringLiteral("手机号")},
+                    {"id_card_cn",   QStringLiteral("身份证号")},
+                    {"car_plate_cn", QStringLiteral("车牌号")},
+                    {"email",        QStringLiteral("邮箱号")},
+                    {"bank_card",    QStringLiteral("银行卡号")},
+
+                    // 香港
+                    {"id_card_hk",        QStringLiteral("香港身份证")},
+                    {"hk_phone",     QStringLiteral("香港手机号")},
+                    {"plate_hk",     QStringLiteral("香港车牌号")},
+
+                    // 澳门
+                    {"id_card_hk",        QStringLiteral("澳门身份证")},
+                    {"mo_phone",     QStringLiteral("澳门手机号")},
+                    {"plate_mo",     QStringLiteral("澳门车牌号")},
+
+                    // 台湾
+                    {"id_card_tw",        QStringLiteral("台湾身份证")},
+                    {"tw_phone",     QStringLiteral("台湾手机号")},
+                    {"plate_tw",     QStringLiteral("台湾车牌号")}
                 };
                 for (const auto& kv : stats) 
                 {

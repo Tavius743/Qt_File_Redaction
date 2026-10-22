@@ -38,7 +38,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page">
        <widget class="QLabel" name="label">
@@ -290,6 +290,55 @@
         </property>
         <property name="text">
          <string>查看使用说明</string>
+        </property>
+       </widget>
+       <widget class="QComboBox" name="cbRegion">
+        <property name="geometry">
+         <rect>
+          <x>150</x>
+          <y>510</y>
+          <width>101</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <item>
+         <property name="text">
+          <string>中国内地</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>中国香港</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>中国澳门</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>中国台湾</string>
+         </property>
+        </item>
+       </widget>
+       <widget class="QLabel" name="label_12">
+        <property name="geometry">
+         <rect>
+          <x>90</x>
+          <y>480</y>
+          <width>81</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <family>新宋体</family>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;适用地区：&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
       </widget>

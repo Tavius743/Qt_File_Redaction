@@ -45,11 +45,11 @@ public:
 	void loadDefaultRules()	//加载默认规则
 	{
 		m_rules.clear();
-		m_rules.push_back({ "phone", regex(R"(1[3-9]\d{9})"),
+		m_rules.push_back({ "phone_cn", regex(R"(1[3-9]\d{9})"),
 			[](const string& s) {return s.substr(0,3) + "****" + s.substr(7,4); }, true });
 		// 优化后的身份证号正则（校验出生日期合法性）
 		m_rules.push_back({
-			"id_card",
+			"id_card_cn",
 			// 前6位数字 + 8位日期（1900-2099年，01-12月，01-31日）+ 3位顺序码 + 校验码
 			std::regex(R"([1-8]\d{5}(19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx])"),
 			[](const string& s) {
@@ -65,7 +65,7 @@ public:
 				return s.substr(0,1) + "****" + s.substr(at - 1,1) + s.substr(at); 
 			}
 			, true });
-		m_rules.push_back({ "bank_card", regex(R"([1-9]\d{15,18})"),
+		m_rules.push_back({ "bank_card", regex(R"(\b([1-9]\d{15}|[1-9]\d{18})\b)"),
 			[](const string& s) 
 			{
 				int len = s.length();
@@ -73,8 +73,32 @@ public:
 				return s.substr(0, 6) + string(len - 10, '*') + s.substr(len - 4, 4);
 			}
 		,true });
-		m_rules.push_back({ "car_plate", std::regex(R"([京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼][A-Z][A-Z0-9]{5})"),
+		m_rules.push_back({ "car_plate_cn", regex(R"([京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼][A-Z][A-Z0-9]{5})"),
 			[](const std::string& s) { return s.substr(0,2) + "***" + s.substr(s.length() - 1,1); }, true });
+
+		// 中国香港
+		m_rules.push_back({ "id_card_hk", std::regex(R"([A-Z]{1,2}\d{6}\([0-9A]\))", std::regex::icase),
+			[](const string& s) { return s.substr(0, 1) + "******" + s.substr(s.length() - 3); }, false });
+		m_rules.push_back({ "phone_hk", std::regex(R"(\b[569]\d{7}\b)"),
+			[](const string& s) { return s.substr(0, 2) + "****" + s.substr(6, 2); }, false });
+		m_rules.push_back({ "plate_hk", std::regex(R"([A-Z]{2}\s?\d{1,4})", std::regex::icase),
+			[](const string& s) { return s.substr(0, 2) + "****"; }, false });
+
+		// 中国澳门
+		m_rules.push_back({ "id_card_mo", std::regex(R"([157]\d{6}\([0-9A-Za-z]\))"),
+			[](const string& s) { return "******" + s.substr(s.length() - 3, 3); }, false });
+		m_rules.push_back({ "phone_mo", std::regex(R"(\b6\d{7}\b)"),
+			[](const string& s) { return s.substr(0, 2) + "****" + s.substr(6, 2); }, false });
+		m_rules.push_back({ "plate_mo", std::regex(R"(M[A-Z]\s?\d{2}\s?-\s?\d{2}|M\d{2}\s?-\s?\d{2})", std::regex::icase),
+			[](const string& s) { return s.substr(0, 2) + "******"; }, false });
+
+		//中国台湾
+		m_rules.push_back({ "id_card_tw", std::regex(R"([A-Z][12]\d{8})", std::regex::icase),
+			[](const string& s) { return s.substr(0, 1) + "********"; }, false });
+		m_rules.push_back({ "phone_tw", std::regex(R"(\b09\d{8}\b)"),
+			[](const string& s) { return s.substr(0, 3) + "***" + s.substr(6, 4); }, false });
+		m_rules.push_back({ "plate_tw", std::regex(R"([A-Z]{2,3}-\d{4})", std::regex::icase),
+			[](const string& s) { return s.substr(0, 2) + "******"; }, false });
 	}
 
 	bool addCustomRule(const string& name, const string& target,
@@ -173,7 +197,9 @@ public:
 		{
 			if (!rule.enabled) continue;
 			//快速预判（跳过不匹配的规则）
-			if (rule.name == "phone" || rule.name == "id_card" || rule.name == "bank_card") 
+			if (rule.name == "phone_cn" || rule.name == "id_card_cn" || rule.name == "bank_card"
+				||rule.name=="phone_hk" || rule.name == "phone_mo" || rule.name == "phone_tw"
+				|| rule.name == "id_card_hk" || rule.name == "id_card_mo" || rule.name == "id_card_tw")
 			{
 				// 这三条规则一定需要数字，没有数字就跳过
 				bool hasDigit = false;
@@ -188,7 +214,7 @@ public:
 				// 邮箱必须有 @
 				if (result.find('@') == std::string::npos) continue;
 			}
-			if (rule.name == "car_plate") 
+			if (rule.name == "car_plate_cn") 
 			{
 				// 车牌必须有 A-Z 字母或中文
 				bool hasAlpha = false;
@@ -213,8 +239,8 @@ public:
 				//三大规则的细化校验
 				string matched = m.str();
 				bool valid = true;
-				if (rule.name == "phone") valid = isValidPhone(matched);
-				else if (rule.name == "id_card")valid = isValidIdCard(matched);
+				if (rule.name == "phone_cn") valid = isValidPhone(matched);
+				else if (rule.name == "id_card_cn")valid = isValidIdCard(matched);
 				else if (rule.name == "bank_card") valid = isValidBankCard(matched);
 				if (!valid) continue;
 
@@ -589,10 +615,10 @@ private:
 		}
 	}
 	
-	bool isValidPhone(const string& phone) const	//手机号白名单校验
+	bool isValidPhone(const string& phone_cn) const	//手机号白名单校验
 	{
-		if (phone.length() != 11) return false;
-		string prefix = phone.substr(0, 3);
+		if (phone_cn.length() != 11) return false;
+		string prefix = phone_cn.substr(0, 3);
 		static const unordered_set<string> validPrefixes =
 		{
 			"130","131","132","133","134","135","136","137","138","139",
